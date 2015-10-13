@@ -1,11 +1,12 @@
 clearvars
 close all
 %%
-addpath('symmetryDectection')
+% addpath('symmetryDectection')
 
-root = './SymmetryDBppGT/';
-inputFolders = {'S/','M/'};
-outputRoot = './SymmetryDBppGT/symmetry/';
+root = '/Users/mads/Desktop/SymmetryDBppGT/';
+% inputFolders = {'S/','M/'};
+inputFolders = {'S_synth/'};
+outputRoot = '/Users/mads/Desktop/SymmetryDBppGT/symmetry/';
 % [~,~] = mkdir(outputFolder);
 
 %%
@@ -19,6 +20,8 @@ ranges = [2:4:50];
 numberOfLines = 10;
 sigmas = [2];
 % sigmas = [2 4 10];
+
+
 
 %%
 for sigma = sigmas

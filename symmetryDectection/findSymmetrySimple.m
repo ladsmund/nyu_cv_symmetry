@@ -8,8 +8,7 @@ p = inputParser;
 defaultSigmas = 4;
 defaultNumberOfSymmetryAngles = 32;
 defaultSearchRange = 10:5:50;
-defaultSearchAngles = [[-pi/4;pi/4], [pi/4;-pi/4]];
-% defaultSearchAngles = [[-pi/4;pi/4], [pi/2;pi/2], [pi/4;-pi/4]];
+defaultSearchAngles = [[-pi/4;pi/4], [pi/2;pi/2], [pi/4;-pi/4]];
 defaultNumberOrLines = 5;
 defaultVerbose = 1;
 defaultVisualize = 0;
@@ -40,7 +39,6 @@ end
 verbose = args.verbose;
 visualize = args.visualize;
 searchRange = args.searchRange;
-numberOfLines = args.numberOfLines;
 searchAngles = args.searchAngles;
 filterAngles = symmetryAngles;
 for sa = searchAngles(:)'
@@ -56,7 +54,8 @@ filterSet = generateFilterSet(img, filterAngles, args.sigmas,visualize);
 if verbose > 0; toc; end;
 
 %% Scan angles
-lineSet = cell(numel(symmetryAngles),1);
+houghSet = cell(numel(symmetryAngles),1);
+houghOffest = ceil(norm([imgWidth, imgHeight]));
 
 if verbose > 0; disp('Start symmetry scanning'); end;
 if verbose > 0; tic; end;
@@ -66,8 +65,11 @@ if verbose > 0; tic; end;
 % otherwize.
 parfor phiIndx = 1:1:numel(symmetryAngles)
     phi = symmetryAngles(phiIndx);
-    if verbose > 0; fprintf('Phi: %.2fpi\n',phi/pi); end;
-      
+    houghAngle = phi - pi/2;
+    
+    % Finding the indices for the corresponding images in the set of pre
+    % filtered images.
+    if verbose > 0; fprintf('Phi: %.2fpi\n',phi/pi); end;     
     imageIndexes = zeros(2,size(searchAngles,2));
     for i = 1:size(searchAngles,2)
         theta = searchAngles(:,i);        
@@ -76,8 +78,8 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
         imageIndexes(:,i) = [find(filterAngles == theta1); ...
                              find(filterAngles == theta2)];
     end
-    
-        %% Compute similarity matrix
+                            
+    %% Compute similarity matrix
     % The similarity matrix is a 3D matrix where the coordinates are the with,
     % height and search distance.
     SIM = zeros(imgHeight,imgWidth,length(searchRange));
@@ -109,38 +111,25 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     rotAngle= 180*(houghAngle)/pi;
     imgRot = imrotate(SIM,rotAngle,'bilinear');
 
-    houghRhoOffset = min(0,round(imgHeight * sin(houghAngle)));
-
-    lenOffset = min(0,-round(imgWidth * sin(houghAngle)));
-    % lenOffset = 0;
-    % lengthOffset = min(0,round(imgHeight * cos(houghAngle)));
-    lengthOffset = 0;
-
-    [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot,maxNumberOfLines,0);
-
-    rhos = rhos + houghRhoOffset;
-    lowerBounds = lowerBounds + lengthOffset + lenOffset;
-    upperBounds = upperBounds + lengthOffset + lenOffset;
-
-    lines = [rhos; values; lowerBounds; upperBounds];                            
-    lineSet{phiIndx} = [phi * ones(1,size(lines,2)); lines];
+    houghAngleOffset = min(0,round(imgHeight * sin(houghAngle)));        
+    hough_line = zeros(1,2*houghOffest);      
+    hough_line((1:size(imgRot,2)) + houghOffest + houghAngleOffset) = squeeze(sum(sum(imgRot,3),1));  
+    houghSet{phiIndx} = hough_line;
         
 end
 if verbose > 0; toc; end;
 %% Generate matrix for hough column
 
-allLines = cat(2,lineSet{:});
+houghSpace = cat(1,houghSet{:});
+[~, i] = max(houghSpace(:));
+[phiIndx, rho]= ind2sub(size(houghSpace),i);
 
-[~, i] = sort(allLines(3,:));
-i = i(end:-1:1);
-allLinesSorted = allLines(:,i);
+phi = symmetryAngles(phiIndx);
+rho = rho - houghOffest;
 
-numberOfLines = min(size(allLinesSorted,2), numberOfLines);
-
-phi = allLinesSorted(1,1:numberOfLines);
-rho = allLinesSorted(2,1:numberOfLines);
-lo = allLinesSorted(4,1:numberOfLines);
-hi  = allLinesSorted(5,1:numberOfLines);
+% This version don't finds start and end positions.
+lo = -1000;
+hi = 1000;
 
 end
 
