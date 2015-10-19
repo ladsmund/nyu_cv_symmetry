@@ -106,6 +106,7 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     %% Transform into rho/line/distance space
     % By rotating the similarity matrix with respect to the houghAngle.
     % The function imrotate used degree and rotates in the opposite direction.
+    houghAngle = phi - pi/2;
     rotAngle= 180*(houghAngle)/pi;
     imgRot = imrotate(SIM,rotAngle,'bilinear');
 
@@ -116,7 +117,7 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     % lengthOffset = min(0,round(imgHeight * cos(houghAngle)));
     lengthOffset = 0;
 
-    [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot,maxNumberOfLines,0);
+    [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot,numberOfLines,0);
 
     rhos = rhos + houghRhoOffset;
     lowerBounds = lowerBounds + lengthOffset + lenOffset;
