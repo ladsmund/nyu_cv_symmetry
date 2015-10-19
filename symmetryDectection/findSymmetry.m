@@ -15,14 +15,14 @@ defaultVerbose = 1;
 defaultVisualize = 0;
 
 addRequired(p,'image',@isnumeric);
-addParameter(p,'sigmas',defaultSigmas,@isnumeric)
-addParameter(p,'numberOfSymmetryAngles',defaultNumberOfSymmetryAngles,@isnumeric)
-addParameter(p,'searchRange',defaultSearchRange,@isnumeric)
-addParameter(p,'searchAngles',defaultSearchAngles,@isnumeric)
-addParameter(p,'numberOfLines',defaultNumberOrLines,@isnumeric)
-addParameter(p,'verbose',defaultVerbose,@isnumeric)
-addParameter(p,'visualize',defaultVisualize,@isnumeric)
-addParameter(p,'symmetryAngles',null(0), @isnumeric)
+addOptional(p,'sigmas',defaultSigmas,@isnumeric)
+addOptional(p,'numberOfSymmetryAngles',defaultNumberOfSymmetryAngles,@isnumeric)
+addOptional(p,'searchRange',defaultSearchRange,@isnumeric)
+addOptional(p,'searchAngles',defaultSearchAngles,@isnumeric)
+addOptional(p,'numberOfLines',defaultNumberOrLines,@isnumeric)
+addOptional(p,'verbose',defaultVerbose,@isnumeric)
+addOptional(p,'visualize',defaultVisualize,@isnumeric)
+addOptional(p,'symmetryAngles',null(0), @isnumeric)
 
 parse(p,inputImage,varargin{:});
 args = p.Results;
