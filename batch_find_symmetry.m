@@ -1,5 +1,7 @@
 function batch_find_symmetry(input_path, output_path)
 %%
+addpath('symmetryDectection')
+
 % symmetryAngles = ((0:16)/16)*pi;
 symmetryAngles = ((0:8)/8)*pi;
 searchAngles = [[-pi/4;pi/4], [pi/2;pi/2], [pi/4;-pi/4]];
