@@ -17,6 +17,8 @@ sigmas = [2];
 images = dir(input_path);
 folder = fileparts(input_path);
 for sigma = sigmas
+    fprintf('Sigma = %.2f\n',sigma);
+    tic
     
     outputFolder = [output_path sprintf('sigma_%i/',num2str(sigma))];
     [~,~] = mkdir(outputFolder);
@@ -83,8 +85,8 @@ for sigma = sigmas
             disp(ME.message);
             toc
             continue;
-        end
-        toc    
+        end    
+        toc
     end
 
 end
