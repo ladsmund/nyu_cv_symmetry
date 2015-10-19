@@ -2,6 +2,13 @@ function [rho, phi, lo, hi] = findSymmetry(inputImage, varargin)
 %% Constants
 FLOAT_EQUALITY_PRECITION = 8;
 
+if verLessThan('matlab', '8.0.0')
+    % I don't know when matlab introduced precition for round
+    round_angle = @(x) round(x * 10^FLOAT_EQUALITY_PRECITION) / 10^FLOAT_EQUALITY_PRECITION;
+else
+    round_angle = @(x) round(x,FLOAT_EQUALITY_PRECITION);    
+end
+
 %% Parse input
 p = inputParser;
 
@@ -45,7 +52,7 @@ searchAngles = args.searchAngles;
 filterAngles = symmetryAngles;
 for sa = searchAngles(:)'
     filterAngles = [filterAngles mod(symmetryAngles+sa,2*pi)];
-    filterAngles = unique(round(filterAngles,FLOAT_EQUALITY_PRECITION));
+    filterAngles = unique(round_angle(filterAngles));
 end
 filterAngles = sort(squeeze(filterAngles));
 
@@ -71,8 +78,8 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     imageIndexes = zeros(2,size(searchAngles,2));
     for i = 1:size(searchAngles,2)
         theta = searchAngles(:,i);        
-        theta1 = round(mod(phi+theta(1),2*pi),FLOAT_EQUALITY_PRECITION);
-        theta2 = round(mod(phi+theta(2),2*pi),FLOAT_EQUALITY_PRECITION);        
+        theta1 = round_angle(mod(phi+theta(1),2*pi));
+        theta2 = round_angle(mod(phi+theta(2),2*pi));        
         imageIndexes(:,i) = [find(filterAngles == theta1); ...
                              find(filterAngles == theta2)];
     end
@@ -110,9 +117,9 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     rotAngle= 180*(houghAngle)/pi;
     imgRot = imrotate(SIM,rotAngle,'bilinear');
 
-    houghRhoOffset = min(0,round(imgHeight * sin(houghAngle)));
+    houghRhoOffset = min(0,round_angle(imgHeight * sin(houghAngle)));
 
-    lenOffset = min(0,-round(imgWidth * sin(houghAngle)));
+    lenOffset = min(0,-round_angle(imgWidth * sin(houghAngle)));
     % lenOffset = 0;
     % lengthOffset = min(0,round(imgHeight * cos(houghAngle)));
     lengthOffset = 0;
