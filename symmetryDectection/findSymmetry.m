@@ -124,7 +124,7 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     % lengthOffset = min(0,round(imgHeight * cos(houghAngle)));
     lengthOffset = 0;
 
-    [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot,numberOfLines,0);
+    [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot,numberOfLines,args.sigmas,0);
 
     rhos = rhos + houghRhoOffset;
     lowerBounds = lowerBounds + lengthOffset + lenOffset;

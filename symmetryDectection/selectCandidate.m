@@ -1,7 +1,7 @@
-function [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot, maxNumberOfLines, visualize)
+function [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot, maxNumberOfLines, sigma, visualize)
 
 
-if nargin < 3
+if nargin < 4
     visualize = 0;
 end
 
@@ -14,7 +14,7 @@ dWeight = ones(1,size(imgRot,3));
 rhoHistogram = dWeight*squeeze(sum(imgRot,1))';
 
 rhoHistogramNorm = sqrt(rhoHistogram .* conj(rhoHistogram));
-rhoHistogramNormBlur = conv(rhoHistogramNorm, fspecial('gaussian',[1,40],10),'same');
+rhoHistogramNormBlur = conv(rhoHistogramNorm, fspecial('gaussian',[1,ceil(6*sigma)],sigma),'same');
 
 [peakValues, peakRhos] = findpeaks(rhoHistogramNormBlur);
 [~, sortIndices] = sort(peakValues(:),1,'descend');
