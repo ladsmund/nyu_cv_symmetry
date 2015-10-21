@@ -1,7 +1,8 @@
 clearvars
 close all
 %%
-
+addpath('symmetryDectection')
+%%
 image = 'I120'; % Glass
 % image = 'I174'; % Helicopter
 % image = 'I172'; % Plane
