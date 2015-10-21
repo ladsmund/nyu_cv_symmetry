@@ -1,4 +1,4 @@
-function [rho, phi, segments] = findSymmetry(inputImage, varargin)
+function [rho, phi, segments] = findSymmetry(inputImage, parameters)
 %% Constants
 FLOAT_EQUALITY_PRECITION = 8;
 
@@ -8,47 +8,28 @@ if verLessThan('matlab', '8.0.0')
 else
     round_angle = @(x) round(x,FLOAT_EQUALITY_PRECITION);    
 end
+%%
 
-%% Parse input
-p = inputParser;
+if nargin < 2
+    parameters = get_default_parameters()
+end
 
-defaultSigmas = 4;
-defaultNumberOfSymmetryAngles = 32;
-defaultSearchRange = 10:5:50;
-defaultSearchAngles = [[-pi/4;pi/4], [pi/4;-pi/4]];
-% defaultSearchAngles = [[-pi/4;pi/4], [pi/2;pi/2], [pi/4;-pi/4]];
-defaultNumberOrLines = 5;
-defaultVerbose = 1;
-defaultVisualize = 0;
 
-addRequired(p,'image',@isnumeric);
-addOptional(p,'sigmas',defaultSigmas,@isnumeric)
-addOptional(p,'numberOfSymmetryAngles',defaultNumberOfSymmetryAngles,@isnumeric)
-addOptional(p,'searchRange',defaultSearchRange,@isnumeric)
-addOptional(p,'searchAngles',defaultSearchAngles,@isnumeric)
-addOptional(p,'numberOfLines',defaultNumberOrLines,@isnumeric)
-addOptional(p,'verbose',defaultVerbose,@isnumeric)
-addOptional(p,'visualize',defaultVisualize,@isnumeric)
-addOptional(p,'symmetryAngles',null(0), @isnumeric)
-
-parse(p,inputImage,varargin{:});
-args = p.Results;
-
-img = double(rgb2gray(args.image));
+img = double(rgb2gray(inputImage));
 imgHeight= size(img,1);
 imgWidth = size(img,2);
 
-if ~numel(args.symmetryAngles)
-    symmetryAngles = (0:args.numberOfSymmetryAngles-1) * (2*pi / args.numberOfSymmetryAngles);
+if ~numel(parameters.symmetryAngles)
+    symmetryAngles = (0:parameters.numberOfSymmetryAngles-1) * (2*pi / parameters.numberOfSymmetryAngles);
 else
-    symmetryAngles = args.symmetryAngles;
+    symmetryAngles = parameters.symmetryAngles;
 end
 
-verbose = args.verbose;
-visualize = args.visualize;
-searchRange = args.searchRange;
-numberOfLines = args.numberOfLines;
-searchAngles = args.searchAngles;
+verbose = parameters.verbose;
+visualize = parameters.visualize;
+searchRange = parameters.searchRange;
+numberOfLines = parameters.numberOfLines;
+searchAngles = parameters.searchAngles;
 filterAngles = [];
 %%
 for sa = searchAngles(:)'
@@ -60,7 +41,7 @@ filterAngles = sort(squeeze(filterAngles));
 %% Pregenerate a set of filtered images
 if verbose > 0; disp('Generate set of filtered images');end;
 if verbose > 0; tic; end;
-filterSet = generateFilterSet(img, filterAngles, args.sigmas,visualize);
+filterSet = generateFilterSet(img, filterAngles, parameters.sigmas,visualize);
 if verbose > 0; toc; end;
 
 %% Scan angles
@@ -123,7 +104,7 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     lenOffset = min(0,-round_angle(imgWidth * sin(houghAngle)));
     lengthOffset = 0;
 
-    [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot,numberOfLines,args.sigmas,0);
+    [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot,numberOfLines,parameters.sigmas,0);
 
     rhos = rhos + houghRhoOffset;
     lowerBounds = lowerBounds + lengthOffset + lenOffset;
