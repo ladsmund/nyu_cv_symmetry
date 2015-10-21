@@ -30,6 +30,10 @@ symmetryMetric = parameters.symmetryMetric;
 filterAngles = [];
 %%
 
+biasFactor = parameters.distanceBiasAlpha * searchRange.^-2;
+biasFactorMatrix = repelem(permute(biasFactor,[3,1,2]),imgHeight,imgWidth,1);
+
+%%
 searchAngles = [searchAngles - pi/2; pi/2- searchAngles];
 
 for sa = searchAngles(:)'
@@ -90,7 +94,9 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     end
 
     % Compute real values symmetry metric for voting
+    
       SIM = symmetryMetric(SIM);
+      SIM =  SIM + biasFactorMatrix;
 
     %% Transform into rho/line/distance space
     % By rotating the similarity matrix with respect to the houghAngle.

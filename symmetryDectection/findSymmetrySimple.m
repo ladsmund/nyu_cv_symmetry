@@ -1,56 +1,51 @@
-function [rho, phi, segments] = findSymmetry(inputImage, varargin)
+function [rho, phi, segments] = findSymmetry(inputImage, parameters)
 %% Constants
 FLOAT_EQUALITY_PRECITION = 8;
-
+if verLessThan('matlab', '8.0.0')
+    % I don't know when matlab introduced precition for round
+    round_angle = @(x) round(x * 10^FLOAT_EQUALITY_PRECITION) / 10^FLOAT_EQUALITY_PRECITION;
+else
+    round_angle = @(x) round(x,FLOAT_EQUALITY_PRECITION);    
+end
 %% Parse input
-p = inputParser;
+if nargin < 2
+    parameters = get_default_parameters()
+end
 
-defaultSigmas = 4;
-defaultNumberOfSymmetryAngles = 32;
-defaultSearchRange = 10:5:50;
-defaultSearchAngles = [[-pi/4;pi/4], [pi/2;pi/2], [pi/4;-pi/4]];
-defaultNumberOrLines = 5;
-defaultVerbose = 1;
-defaultVisualize = 0;
 
-addRequired(p,'image',@isnumeric);
-addParameter(p,'sigmas',defaultSigmas,@isnumeric)
-addParameter(p,'numberOfSymmetryAngles',defaultNumberOfSymmetryAngles,@isnumeric)
-addParameter(p,'searchRange',defaultSearchRange,@isnumeric)
-addParameter(p,'searchAngles',defaultSearchAngles,@isnumeric)
-addParameter(p,'numberOfLines',defaultNumberOrLines,@isnumeric)
-addParameter(p,'verbose',defaultVerbose,@isnumeric)
-addParameter(p,'visualize',defaultVisualize,@isnumeric)
-addParameter(p,'symmetryAngles',null(0), @isnumeric)
-
-parse(p,inputImage,varargin{:});
-args = p.Results;
-
-img = double(rgb2gray(args.image));
+img = double(rgb2gray(inputImage));
 imgHeight= size(img,1);
 imgWidth = size(img,2);
 
-if ~numel(args.symmetryAngles)
-    symmetryAngles = (0:args.numberOfSymmetryAngles-1) * (2*pi / args.numberOfSymmetryAngles);
+verbose = parameters.verbose;
+visualize = parameters.visualize;
+searchRange = parameters.searchRange;
+numberOfLines = parameters.numberOfLines;
+searchAngles = parameters.searchAngles;
+symmetryAngles = parameters.symmetryAngles;
+filterCombinator = parameters.filterCombinator;
+symmetryMetric = parameters.symmetryMetric;
+filterAngles = [];
+
+if ~numel(parameters.symmetryAngles)
+    symmetryAngles = (0:parameters.numberOfSymmetryAngles-1) * (2*pi / parameters.numberOfSymmetryAngles);
 else
-    symmetryAngles = args.symmetryAngles;
+    symmetryAngles = parameters.symmetryAngles;
 end
 
-verbose = args.verbose;
-visualize = args.visualize;
-searchRange = args.searchRange;
-searchAngles = args.searchAngles;
-filterAngles = symmetryAngles;
+searchAngles = [searchAngles - pi/2; pi/2- searchAngles];
+
 for sa = searchAngles(:)'
     filterAngles = [filterAngles mod(symmetryAngles+sa,2*pi)];
-    filterAngles = unique(round(filterAngles,FLOAT_EQUALITY_PRECITION));
+    filterAngles = unique(round_angle(filterAngles));
 end
 filterAngles = sort(squeeze(filterAngles));
+
 
 %% Pregenerate a set of filtered images
 if verbose > 0; disp('Generate set of filtered images');end;
 if verbose > 0; tic; end;
-filterSet = generateFilterSet(img, filterAngles, args.sigmas,visualize);
+filterSet = generateFilterSet(img, filterAngles, parameters.sigmas,visualize);
 if verbose > 0; toc; end;
 
 %% Scan angles
