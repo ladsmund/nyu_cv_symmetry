@@ -31,7 +31,7 @@ filterAngles = [];
 %%
 
 biasFactor = parameters.distanceBiasAlpha * searchRange.^-2;
-biasFactorMatrix = repelem(permute(biasFactor,[3,1,2]),imgHeight,imgWidth,1);
+biasFactorMatrix = repmat(permute(biasFactor,[3,1,2]),imgHeight,imgWidth,1);
 
 %%
 searchAngles = [searchAngles - pi/2; pi/2- searchAngles];
