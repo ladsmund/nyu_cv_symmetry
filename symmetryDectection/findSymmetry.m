@@ -1,4 +1,4 @@
-function [rho, phi, lo, hi] = findSymmetry(inputImage, varargin)
+function [rho, phi, segments] = findSymmetry(inputImage, varargin)
 %% Constants
 FLOAT_EQUALITY_PRECITION = 8;
 
@@ -49,7 +49,8 @@ visualize = args.visualize;
 searchRange = args.searchRange;
 numberOfLines = args.numberOfLines;
 searchAngles = args.searchAngles;
-filterAngles = symmetryAngles;
+filterAngles = [];
+%%
 for sa = searchAngles(:)'
     filterAngles = [filterAngles mod(symmetryAngles+sa,2*pi)];
     filterAngles = unique(round_angle(filterAngles));
@@ -77,14 +78,14 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
       
     imageIndexes = zeros(2,size(searchAngles,2));
     for i = 1:size(searchAngles,2)
-        theta = searchAngles(:,i);        
+        theta = searchAngles(:,i);    
         theta1 = round_angle(mod(phi+theta(1),2*pi));
         theta2 = round_angle(mod(phi+theta(2),2*pi));        
         imageIndexes(:,i) = [find(filterAngles == theta1); ...
                              find(filterAngles == theta2)];
     end
     
-        %% Compute similarity matrix
+    %% Compute similarity matrix
     % The similarity matrix is a 3D matrix where the coordinates are the with,
     % height and search distance.
     SIM = zeros(imgHeight,imgWidth,length(searchRange));
@@ -120,8 +121,6 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     houghRhoOffset = min(0,round_angle(imgHeight * sin(houghAngle)));
 
     lenOffset = min(0,-round_angle(imgWidth * sin(houghAngle)));
-    % lenOffset = 0;
-    % lengthOffset = min(0,round(imgHeight * cos(houghAngle)));
     lengthOffset = 0;
 
     [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot,numberOfLines,args.sigmas,0);
@@ -149,6 +148,20 @@ phi = allLinesSorted(1,1:numberOfLines);
 rho = allLinesSorted(2,1:numberOfLines);
 lo = allLinesSorted(4,1:numberOfLines);
 hi  = allLinesSorted(5,1:numberOfLines);
+
+
+%% Compute segments
+segments = cell(numberOfLines,1);
+for i = 1:numberOfLines
+    theta = phi(i) - pi/2;
+    [cx, cy] = pol2cart(theta,rho(i));
+    [lx, ly] = pol2cart(theta+pi/2,lo(i));
+    [hx, hy] = pol2cart(theta+pi/2,hi(i));
+
+    segments{i} = [[cx+lx;cx+hx], [cy+ly;cy+hy]];
+
+end
+
 
 end
 

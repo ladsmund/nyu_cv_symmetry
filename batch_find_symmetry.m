@@ -8,12 +8,13 @@ function output_files = batch_find_symmetry(input_path, output_path)
 addpath('symmetryDectection')
 
 % symmetryAngles = ((0:16)/16)*pi;
-symmetryAngles = ((0:8)/8)*pi;
+% symmetryAngles = ((0:8)/8)*pi;
+symmetryAngles = pi/2;
 searchAngles = [[-pi/4;pi/4], [pi/2;pi/2], [pi/4;-pi/4]];
 % searchAngles = [[-pi/4;pi/4], [0;0], [pi/4;-pi/4]];
 
 % ranges = [2:2:100];
-ranges = [2:2:80];
+ranges = [2:4:80];
 % ranges = [2:4:50];
 numberOfLines = 20;
 sigmas = [2];
@@ -41,7 +42,7 @@ for sigma = sigmas
         img = imread(image_path);
 
         try
-            [rho, phi, lo, hi] = findSymmetry(...
+            [rho, phi, segments] = findSymmetry(...
                 img...
                 ,'visualize',0 ...
                 ,'verbose',0 ...
@@ -51,19 +52,6 @@ for sigma = sigmas
                 ,'searchAngles',searchAngles ...
                 ,'symmetryAngles',symmetryAngles ...
                 );
-
-            %% Compute segments
-            number_of_segments = min(numberOfLines,numel(phi));
-            segments = cell(number_of_segments,1);
-            for i = 1:number_of_segments
-                theta = phi(i) - pi/2;
-                [cx, cy] = pol2cart(theta,rho(i));
-                [lx, ly] = pol2cart(theta+pi/2,lo(i));
-                [hx, hy] = pol2cart(theta+pi/2,hi(i));
-                
-                segments{i} = [[cx+lx;cx+hx], [cy+ly;cy+hy]];
-                
-            end
             
             
             %% Save data file with symmetry information
@@ -77,8 +65,6 @@ for sigma = sigmas
                  'ext', ...
                  'rho', ...
                  'phi', ...
-                 'lo', ...
-                 'hi', ...
                  'symmetryAngles', ...
                  'searchAngles', ...
                  'ranges', ...

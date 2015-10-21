@@ -5,42 +5,45 @@ if nargin < 4
     visualize = 0;
 end
 
-% dWeight = fspecial('gauss',[1,2*size(imgRot,3)],4);
-% dWeight = dWeight(size(imgRot,3)+1:end);
 dWeight = ones(1,size(imgRot,3));
 
-% Generate histogram for rho values
-% rhoHistogram = squeeze(sum(sum(imgRot,1),3));
 rhoHistogram = dWeight*squeeze(sum(imgRot,1))';
 
 rhoHistogramNorm = sqrt(rhoHistogram .* conj(rhoHistogram));
-rhoHistogramNormBlur = conv(rhoHistogramNorm, fspecial('gaussian',[1,ceil(6*sigma)],sigma),'same');
 
-[peakValues, peakRhos] = findpeaks(rhoHistogramNormBlur);
+[peakValues, peakRhos] = findpeaks(rhoHistogramNorm);
 [~, sortIndices] = sort(peakValues(:),1,'descend');
 
-numberOfLines = min(maxNumberOfLines, numel(peakRhos));
+indices = zeros(numel(sortIndices),1);
+numberOfLines = 0;
+for i = sortIndices'
+    if sum(abs(peakRhos(indices(1:numberOfLines)) - peakRhos(i)) < 3*sigma)
+        continue
+    end
+    numberOfLines = numberOfLines + 1;
+    indices(numberOfLines) = i;
+    if numberOfLines >= maxNumberOfLines
+        break;
+    end
+end
+sortIndices = indices(1:numberOfLines);
 
 rhos = peakRhos(sortIndices(1:numberOfLines));
 values = peakValues(sortIndices(1:numberOfLines));
 
-THRESSHOLD = 0.1;
 lowerBounds = zeros(1,numberOfLines);
 upperBounds = zeros(1,numberOfLines);
 for i = 1:numberOfLines
     
     candidate = imgRot(:,rhos(i),:);
-
-%     lengthHistogram = sum(candidate,3);
     lengthHistogram = squeeze(candidate) * dWeight';
     lengthHistogram = squeeze(sum(lengthHistogram,2));
     lengthHistogram_norm = sqrt(lengthHistogram .* conj(lengthHistogram));
-
-    lengthHistogram_norm_mean = mean(lengthHistogram_norm);
     
-    lowerBounds(i) = find((lengthHistogram_norm/lengthHistogram_norm_mean) > THRESSHOLD,1);
-    upperBounds(i) = find((lengthHistogram_norm/lengthHistogram_norm_mean) > THRESSHOLD,1,'last');
-
+    energy = cumsum(lengthHistogram_norm) / sum(lengthHistogram_norm);
+    lowerBounds(i) = find(energy > .02,1);
+    upperBounds(i) = find(energy > .98,1);
+    
 end
 
 

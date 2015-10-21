@@ -1,4 +1,4 @@
-function [rho, phi, lo, hi] = findSymmetry(inputImage, varargin)
+function [rho, phi, segments] = findSymmetry(inputImage, varargin)
 %% Constants
 FLOAT_EQUALITY_PRECITION = 8;
 
@@ -130,6 +130,20 @@ rho = rho - houghOffest;
 % This version don't finds start and end positions.
 lo = -1000;
 hi = 1000;
+
+
+%% Compute segments
+segments = cell(1,1);
+for i = 1:1
+    theta = phi(i) - pi/2;
+    [cx, cy] = pol2cart(theta,rho(i));
+    [lx, ly] = pol2cart(theta+pi/2,lo(i));
+    [hx, hy] = pol2cart(theta+pi/2,hi(i));
+
+    segments{i} = [[cx+lx;cx+hx], [cy+ly;cy+hy]];
+
+end
+
 
 end
 
