@@ -1,23 +1,20 @@
 function parameters = get_default_parameters()
-%%
-defaultSigmas = 4;
-defaultSymmetryAngles = ((1:16)/16)*pi;
-defaultSearchRange = 10:5:50;
-defaultSearchAngles = [-pi/4, 0,pi/4];
-defaultNumberOrLines = 5;
-defaultVerbose = 1;
-defaultVisualize = 0;
+parameters = struct();
+parameters.visualize = 0;
+parameters.verbose = 1;
 
+parameters.numberOfLines = 5;
 
-parameters = struct(...
-    'visualize',defaultVisualize ...
-    ,'verbose',defaultVerbose...
-    ,'searchRange',defaultSearchRange ...
-    ,'sigmas',defaultSigmas ...
-    ,'numberOfLines',defaultNumberOrLines...
-    ,'searchAngles',defaultSearchAngles ...
-    ,'symmetryAngles',defaultSymmetryAngles ...
-    );
+parameters.searchRange = 2:2:80;
+parameters.sigmas = 4;
+parameters.searchAngles = [-pi/4, 0,pi/4];
+parameters.symmetryAngles = ((1:16)/16)*pi;
 
-%%
+parameters.filterCombinator = @(J1t, J2t) (J1t .* conj(J2t));
+parameters.symmetryMetric = @(SIM) real(sqrt(SIM .* conj(SIM)));
+
+parameters.miniumRhoDistance = 10;
+parameters.segmentHistogramQuantileLow = .02;
+parameters.segmentHistogramQuantileHigh = .92;
+
 end

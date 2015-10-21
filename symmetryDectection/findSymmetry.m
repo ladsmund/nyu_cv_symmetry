@@ -19,19 +19,19 @@ img = double(rgb2gray(inputImage));
 imgHeight= size(img,1);
 imgWidth = size(img,2);
 
-if ~numel(parameters.symmetryAngles)
-    symmetryAngles = (0:parameters.numberOfSymmetryAngles-1) * (2*pi / parameters.numberOfSymmetryAngles);
-else
-    symmetryAngles = parameters.symmetryAngles;
-end
-
 verbose = parameters.verbose;
 visualize = parameters.visualize;
 searchRange = parameters.searchRange;
 numberOfLines = parameters.numberOfLines;
 searchAngles = parameters.searchAngles;
+symmetryAngles = parameters.symmetryAngles;
+filterCombinator = parameters.filterCombinator;
+symmetryMetric = parameters.symmetryMetric;
 filterAngles = [];
 %%
+
+searchAngles = [searchAngles - pi/2; pi/2- searchAngles];
+
 for sa = searchAngles(:)'
     filterAngles = [filterAngles mod(symmetryAngles+sa,2*pi)];
     filterAngles = unique(round_angle(filterAngles));
@@ -85,12 +85,12 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
             J2t = imtranslate(J2,-d);
             
             % Combining the two filtered images
-            SIM(:,:,rIndx) = SIM(:,:,rIndx) + (J1t .* conj(J2t));
+            SIM(:,:,rIndx) = SIM(:,:,rIndx) + filterCombinator(J1t, J2t);
         end                
     end
 
     % Compute real values symmetry metric for voting
-    SIM = real(sqrt(SIM .* conj(SIM)));
+      SIM = symmetryMetric(SIM);
 
     %% Transform into rho/line/distance space
     % By rotating the similarity matrix with respect to the houghAngle.
@@ -104,7 +104,7 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     lenOffset = min(0,-round_angle(imgWidth * sin(houghAngle)));
     lengthOffset = 0;
 
-    [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot,numberOfLines,parameters.sigmas,0);
+    [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot, parameters);
 
     rhos = rhos + houghRhoOffset;
     lowerBounds = lowerBounds + lengthOffset + lenOffset;

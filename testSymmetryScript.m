@@ -5,9 +5,9 @@ addpath('symmetryDectection')
 %% Read image files
 
 % image = 'I120'; % Glass
-% image = 'I174'; % Helicopter
+image = 'I174'; % Helicopter
 % image = 'I172'; % Plane difficult
-image = 'I175'; % Helicopter
+% image = 'I175'; % Helicopter
 
 folder = '~/workspace/SymmetryDBpp/S/';
 image_path = sprintf('%s%s.png',folder,image);

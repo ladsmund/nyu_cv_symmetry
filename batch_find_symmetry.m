@@ -1,10 +1,5 @@
 function output_files = batch_find_symmetry(input_path, output_path, parameters)
 %%
-
-% input_path = '~/workspace/SymmetryDBpp/S/I096.png';
-% output_path = '~/workspace/SymmetryDBpp/output/S/';
-
-%%
 addpath('symmetryDectection')
 if nargin < 3
     parameters = get_default_parameters();
@@ -27,7 +22,8 @@ image_number = image_number + 1;
 output_files = cell(numel(images), 1);
 tic
 
-outputFolder = [output_path sprintf('sigma_%s/',num2str(sigma))];
+% outputFolder = [output_path sprintf('sigma_%s/',num2str(sigma))];
+outputFolder = [output_path];
 [~,~] = mkdir(outputFolder);
 
 for idx = 1:length(images)
