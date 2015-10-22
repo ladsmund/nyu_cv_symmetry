@@ -1,13 +1,5 @@
 function [rho, phi, segments, value] = findSymmetry(inputImage, parameters)
-%% Constants
-FLOAT_EQUALITY_PRECITION = 8;
 
-if verLessThan('matlab', '8.0.0')
-    % I don't know when matlab introduced precition for round
-    round_angle = @(x) round(x * 10^FLOAT_EQUALITY_PRECITION) / 10^FLOAT_EQUALITY_PRECITION;
-else
-    round_angle = @(x) round(x,FLOAT_EQUALITY_PRECITION);    
-end
 %%
 
 if nargin < 2
@@ -86,9 +78,9 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     rotAngle= 180*(houghAngle)/pi;
     imgRot = imrotate(SIM,rotAngle,'bilinear');
 
-    houghRhoOffset = min(0,round_angle(imgHeight * sin(houghAngle)));
+    houghRhoOffset = min(0,round(imgHeight * sin(houghAngle)));
 
-    lenOffset = min(0,-round_angle(imgWidth * sin(houghAngle)));
+    lenOffset = min(0,-round(imgWidth * sin(houghAngle)));
     lengthOffset = 0;
 
     [rhos, values, lowerBounds, upperBounds] = selectCandidate(imgRot, parameters);
