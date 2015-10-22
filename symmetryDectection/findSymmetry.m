@@ -23,30 +23,20 @@ verbose = parameters.verbose;
 visualize = parameters.visualize;
 searchRange = parameters.searchRange;
 numberOfLines = parameters.numberOfLines;
-searchAngles = parameters.searchAngles;
 symmetryAngles = parameters.symmetryAngles;
 filterCombinator = parameters.filterCombinator;
 symmetryMetric = parameters.symmetryMetric;
-filterAngles = [];
+sigmas = parameters.sigmas;
+
+searchAngles = parameters.searchAngles;
+searchAngles = [searchAngles - pi/2; pi/2- searchAngles];
+
 %%
 
 biasFactor = parameters.distanceBiasAlpha * searchRange.^-2;
 biasFactorMatrix = repmat(permute(biasFactor,[3,1,2]),imgHeight,imgWidth,1);
 
 %%
-searchAngles = [searchAngles - pi/2; pi/2- searchAngles];
-
-for sa = searchAngles(:)'
-    filterAngles = [filterAngles mod(symmetryAngles+sa,2*pi)];
-    filterAngles = unique(round_angle(filterAngles));
-end
-filterAngles = sort(squeeze(filterAngles));
-
-%% Pregenerate a set of filtered images
-if verbose > 0; disp('Generate set of filtered images');end;
-if verbose > 0; tic; end;
-filterSet = generateFilterSet(img, filterAngles, parameters.sigmas,visualize);
-if verbose > 0; toc; end;
 
 %% Scan angles
 lineSet = cell(numel(symmetryAngles),1);
@@ -60,27 +50,19 @@ if verbose > 0; tic; end;
 parfor phiIndx = 1:1:numel(symmetryAngles)
     phi = symmetryAngles(phiIndx);
     if verbose > 0; fprintf('Phi: %.2fpi\n',phi/pi); end;
-      
-    imageIndexes = zeros(2,size(searchAngles,2));
-    for i = 1:size(searchAngles,2)
-        theta = searchAngles(:,i);    
-        theta1 = round_angle(mod(phi+theta(1),2*pi));
-        theta2 = round_angle(mod(phi+theta(2),2*pi));        
-        imageIndexes(:,i) = [find(filterAngles == theta1); ...
-                             find(filterAngles == theta2)];
-    end
     
-    %% Compute similarity matrix
+    %% Compute Symmetry matrix
     % The similarity matrix is a 3D matrix where the coordinates are the with,
     % height and search distance.
     SIM = zeros(imgHeight,imgWidth,length(searchRange));
-    for i = imageIndexes
-        tIndx1 = i(1);
-        tIndx2 = i(2);
-
-        J1 = filterSet.filtered{tIndx1};
-        J2 = filterSet.filtered{tIndx2};
-
+    for i = 1:size(searchAngles,2)
+        theta = searchAngles(:,i);    
+        theta1 = mod(phi+theta(1),2*pi);
+        theta2 = mod(phi+theta(2),2*pi);
+        
+        J1 = morletFilter(img,theta1, sigmas);
+        J2 = morletFilter(img,theta2, sigmas);
+        
         for rIndx = 1:numel(searchRange)
             r = searchRange(rIndx);
             [dx, dy] = pol2cart(phi-pi/2,r);
@@ -93,10 +75,9 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
         end                
     end
 
-    % Compute real values symmetry metric for voting
-    
-      SIM = symmetryMetric(SIM);
-      SIM = SIM + biasFactorMatrix;
+    % Compute real values symmetry metric for voting    
+    SIM = symmetryMetric(SIM);
+    SIM = SIM + biasFactorMatrix;
 
     %% Transform into rho/line/distance space
     % By rotating the similarity matrix with respect to the houghAngle.
