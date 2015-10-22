@@ -29,8 +29,8 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     [rhos, values, lowerBounds, upperBounds] = selectCandidate(SYM, parameters);
 
     rhos = rhos + houghRhoOffset;
-    lowerBounds = lowerBounds + lengthOffset + lenOffset;
-    upperBounds = upperBounds + lengthOffset + lenOffset;
+    lowerBounds = lowerBounds + lengthOffset;
+    upperBounds = upperBounds + lengthOffset;
 
     lines = [rhos; values; lowerBounds; upperBounds];                            
     lineSet{phiIndx} = [phi * ones(1,size(lines,2)); lines];
