@@ -1,4 +1,4 @@
-function [rho, phi, segments] = findSymmetry(inputImage, parameters)
+function [rho, phi, segments, value] = findSymmetry(inputImage, parameters)
 %% Constants
 FLOAT_EQUALITY_PRECITION = 8;
 
@@ -96,7 +96,7 @@ parfor phiIndx = 1:1:numel(symmetryAngles)
     % Compute real values symmetry metric for voting
     
       SIM = symmetryMetric(SIM);
-      SIM =  SIM + biasFactorMatrix;
+      SIM = SIM + biasFactorMatrix;
 
     %% Transform into rho/line/distance space
     % By rotating the similarity matrix with respect to the houghAngle.
@@ -135,6 +135,7 @@ phi = allLinesSorted(1,1:numberOfLines);
 rho = allLinesSorted(2,1:numberOfLines);
 lo = allLinesSorted(4,1:numberOfLines);
 hi  = allLinesSorted(5,1:numberOfLines);
+value  = allLinesSorted(3,1:numberOfLines);
 
 
 %% Compute segments

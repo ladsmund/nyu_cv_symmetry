@@ -29,11 +29,12 @@ outputFolder = [output_path];
 for idx = 1:length(images)
     image_path = [folder '/' images(idx).name];
     [~, name, ext] = fileparts(image_path); 
-
+     
     img = imread(image_path);
 
     try
-        [rho, phi, segments] = findSymmetry(img, parameters);            
+        [rho, phi, segments, values] = findSymmetry(img, parameters);            
+%         [rho, phi, segments] = findSymmetrySimple(img, parameters);            
 
         %% Save data file with symmetry information
         image_output_path = sprintf('%s.mat',[outputFolder name]);
@@ -41,6 +42,7 @@ for idx = 1:length(images)
 
         save(image_output_path, ...
              'parameters',...
+             'values',...
              'image_path',...
              'folder', ...
              'name', ...
